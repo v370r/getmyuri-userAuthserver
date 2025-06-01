@@ -8,19 +8,15 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import lombok.RequiredArgsConstructor;
-
 @Configuration
-@RequiredArgsConstructor
 public class BeansConfig {
-
-    private final UserDetailsService userDetailsService;
 
     @Bean
     public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService,
-            PasswordEncoder passwordEncoder) {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService);
-        authProvider.setPasswordEncoder((passwordEncoder()));
+            PasswordEncoder passwordEncoder) { // passwordEncoder is the bean instance
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(); // Initialize DaoAuthenticationProvider
+        authProvider.setUserDetailsService(userDetailsService); // Set UserDetailsService
+        authProvider.setPasswordEncoder(passwordEncoder); // Correct: use the injected PasswordEncoder bean
         return authProvider;
     }
 

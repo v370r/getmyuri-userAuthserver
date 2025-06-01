@@ -19,17 +19,17 @@ import io.jsonwebtoken.security.Keys;
 @Service
 public class JwtService {
 
-    @Value("${application.security.jwt.expiration")
-    private long jwtExpiration ;
+    @Value("${application.security.jwt.expiration}")
+    private long jwtExpiration;
 
-    @Value("${application.security.jwt.secret")
+    @Value("${application.security.jwt.secret-key}")
     private String secretKey;
 
-    private String extractUsername(String token) {
+    public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
-    
-    public <T>  T extractClaim(String token, Function<Claims, T> claimResolver) {
+
+    public <T> T extractClaim(String token, Function<Claims, T> claimResolver) {
         final Claims claims = extractAllClaims(token);
         return claimResolver.apply(claims);
     }
@@ -47,26 +47,17 @@ public class JwtService {
         return generateToken(new HashMap<>(), userDetails);
     }
 
-    private String generateToken(Map<String, Object> claims, 
-        UserDetails userDetails) {
-
-        return  buildToken(claims, userDetails, jwtExpiration);
+    private String generateToken(Map<String, Object> claims, UserDetails userDetails) {
+        return buildToken(claims, userDetails, this.jwtExpiration); // Use the field here
     }
 
-    private String generateToken(Map<String, Object> claims, 
-        UserDetails userDetails, long jwtExpiration) {
-
-        return  buildToken(claims, userDetails, jwtExpiration);
-    }
-
-
-    private String buildToken(Map<String, Object> extraClaims, UserDetails userDetails, long jwtExpiration) {
+    private String buildToken(Map<String, Object> extraClaims, UserDetails userDetails, long expiration) {
         var authorities = userDetails.getAuthorities().stream()
-                            .map(GrantedAuthority:: getAuthority).toList();
-         return Jwts.builder().setClaims(extraClaims)
+                           .map(GrantedAuthority::getAuthority).toList();
+        return Jwts.builder().setClaims(extraClaims)
             .setSubject(userDetails.getUsername())
             .setIssuedAt(new Date(System.currentTimeMillis()))
-            .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
+            .setExpiration(new Date(System.currentTimeMillis() + expiration)) // Use the passed expiration
             .claim("authorities", authorities)
             .signWith(getSignInKey())
             .compact();
@@ -86,5 +77,7 @@ public class JwtService {
         return extractExpiration(token).before(new Date());
     }
 
-
+    private Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
 }
