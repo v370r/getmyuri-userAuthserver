@@ -22,14 +22,14 @@ import lombok.RequiredArgsConstructor;
 @EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfig {
 
-    private JwtFilter jwtAuthFilter;
+    private final JwtFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(Customizer.withDefaults())
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer:: disable)
                 .authorizeHttpRequests(req -> req.requestMatchers(
                         "/auth/**",
                         "/v2/api-docs",
@@ -45,7 +45,10 @@ public class SecurityConfig {
                                                                                       // know
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
-                .addFilter(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // Check authFoilter beofre our
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // Check authFoilter beofre our
+                
                                                                                        // class
+                                                                                       
+        return http.build();
     }
 }

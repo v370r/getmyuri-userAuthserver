@@ -32,7 +32,16 @@ spring:
 application:
     security:
         jwt:
-            secret: mySecretKey
+            secret-key: 63OCZV0QOG98QQ6LVOTJAF3SIZC23G52DDE880X2UAKAXBYRLA04CQLZ6WSMP7U5
             expiration: 3600 # 1 hour in seconds
             header: Authorization
             prefix: Bearer
+    
+    mailing:
+        frontend:
+            activation-url: http://localhost:8080/activate-account # Frontend change frontend url
+
+
+server:
+    port: 8088
+    

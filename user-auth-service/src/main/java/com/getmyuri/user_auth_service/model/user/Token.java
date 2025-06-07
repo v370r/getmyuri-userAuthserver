@@ -32,6 +32,6 @@ public class Token {
 
     @ManyToOne
     @JoinColumn(name = "userId", nullable = false)
-    private User use;
+    private User user;
 
 }
