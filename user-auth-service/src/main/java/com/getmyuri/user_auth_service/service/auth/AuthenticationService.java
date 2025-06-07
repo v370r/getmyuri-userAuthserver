@@ -110,15 +110,21 @@ public class AuthenticationService {
     }
 
     @Transactional
-    public void activateAccount(String token) throws MessagingException {
+    public void activateAccount(String token, String email) throws MessagingException {
         Token savedToken = tokenRepository.findByToken(token)
                 .orElseThrow(() -> new RuntimeException("Invalid token"));
+
+        User userFromToken = savedToken.getUser();
+        if (userFromToken == null || !email.equalsIgnoreCase(userFromToken.getEmail())) {
+            throw new RuntimeException("Invalid token or email");
+        }
+
         if (LocalDateTime.now().isAfter(savedToken.getExpiresAt())) {
             sendValidationEmail(savedToken.getUser());
             throw new RuntimeException("Activation token has expired. A new token is issued");
         }
 
-        var user = userRepository.findById(savedToken.getUser().getId())
+        var user = userRepository.findById(userFromToken.getId())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         user.setEnabled(Boolean.TRUE);
         userRepository.save(user);
