@@ -32,6 +32,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer:: disable)
                 .authorizeHttpRequests(req -> req.requestMatchers(
                         "/auth/**",
+                        // SpringDoc OpenAPI paths
                         "/v2/api-docs",
                         "/v3/api-docs",
                         "/v3/api-docs/**",
@@ -39,10 +40,10 @@ public class SecurityConfig {
                         "/swagger-resources/**",
                         "/configuration/ui",
                         "/configuration/security",
-                        "/swagger-ui/**",
-                        "/webjars/**",
-                        "/swagger-ui/html").permitAll().anyRequest().authenticated()) // make everytime as if we dont
-                                                                                      // know
+                        "/swagger-ui.html", // Specific path for the Swagger UI page
+                        "/swagger-ui/**",   // Resources for Swagger UI
+                        "/webjars/**"       // Webjar resources (like CSS, JS for Swagger UI)
+                        ).permitAll().anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // Check authFoilter beofre our
