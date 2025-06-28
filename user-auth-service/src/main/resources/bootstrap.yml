@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: user-auth-service
+
+  # config:  Migrate to cloud config wrt cloud train release
+  #   import: "configserver:"
+
+  # cloud:
+  #   config:
+  #     uri: http://localhost:8888

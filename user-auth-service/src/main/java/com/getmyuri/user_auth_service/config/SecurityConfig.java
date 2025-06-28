@@ -29,7 +29,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(Customizer.withDefaults())
-                .csrf(AbstractHttpConfigurer:: disable)
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req -> req.requestMatchers(
                         "/auth/**",
                         "/v2/api-docs",
@@ -45,10 +45,11 @@ public class SecurityConfig {
                                                                                       // know
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // Check authFoilter beofre our
-                
-                                                                                       // class
-                                                                                       
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // Check authFoilter beofre
+                                                                                             // our
+
+        // class
+
         return http.build();
     }
 }
