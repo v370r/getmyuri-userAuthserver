@@ -1,8 +1,8 @@
 spring:
     datasource:
-        url: jdbc:postgresql://localhost:5432/userAuth
-        username: username
-        password: passwd
+        url: ${SPRING_DATASOURCE_URL}
+        username: ${SPRING_DATASOURCE_USERNAME}
+        password: ${SPRING_DATASOURCE_PASSWORD}
         driver-class-name: org.postgresql.Driver
     jpa:
         hibernate:
@@ -14,17 +14,16 @@ spring:
         database: postgresql
         database-platform: org.hibernate.dialect.PostgreSQLDialect
     mail:
-        host: localhost
-        port: 1025 # MailDev SMTP port 1080 for web interface
-        username: getmyuri
-        password: passwd
+        host: ${SPRING_MAIL_HOST}
+        port: ${SPRING_MAIL_PORT:587} # MailDev SMTP port 1080 for web interface
+        username: ${SPRING_MAIL_USERNAME}
+        password: ${SPRING_MAIL_PASSWORD:xsmtpsib-3b69cda5254233696b0810e9e2b782e05ca27187c6f0d5d307358486f517388b-Ufg7YdtEka1Zs0J5}
         properties:
             mail:
                 smtp:
-                    trust:"*"
-                auth: true
-                starttls:
-                    enable: true
+                    auth: true
+                    starttls:
+                        enable: true
                 connectiontimeout: 5000
                 timeout: 3000
                 writetimeout: 5000
@@ -32,8 +31,8 @@ spring:
 application:
     security:
         jwt:
-            secret-key: 63OCZV0QOG98QQ6LVOTJAF3SIZC23G52DDE880X2UAKAXBYRLA04CQLZ6WSMP7U5
-            expiration: 3600 # 1 hour in seconds
+            secret-key: ${JWT_SECRET_KEY}
+            expiration: ${JWT_EXPIRATION_TIME}
             header: Authorization
             prefix: Bearer
     
@@ -44,4 +43,3 @@ application:
 
 server:
     port: 8088
-    
