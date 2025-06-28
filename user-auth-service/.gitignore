@@ -10,7 +10,9 @@ target/
 .factorypath
 .project
 .settings
-.springBeans
+.springBeans### VS Code ###
+.vscode/
+.env
 .sts4-cache
 
 ### IntelliJ IDEA ###
@@ -29,6 +31,3 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### VS Code ###
-.vscode/
-.env
