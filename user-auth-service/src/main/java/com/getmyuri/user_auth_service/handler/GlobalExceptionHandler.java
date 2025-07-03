@@ -21,7 +21,7 @@ import static com.getmyuri.user_auth_service.model.exception.BusinessErrorCodes.
 
 import com.getmyuri.user_auth_service.model.exception.ExceptionResponse;
 
-import jakarta.mail.MessagingException;
+// import jakarta.mail.MessagingException; // Removed as EmailService is deleted
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -68,17 +68,19 @@ public class GlobalExceptionHandler {
                 );
     }
 
-    @ExceptionHandler(MessagingException.class)
-    public ResponseEntity<ExceptionResponse> handleException(MessagingException exp) {
-        return ResponseEntity
-                .status(INTERNAL_SERVER_ERROR)
-                .body(
-                        ExceptionResponse.builder()
-                                .error(exp.getMessage())
-                                .build()
+    // Removed MessagingException handler as EmailService (the source of this exception) was deleted.
+    // Keycloak now handles email sending.
+    // @ExceptionHandler(MessagingException.class)
+    // public ResponseEntity<ExceptionResponse> handleException(MessagingException exp) {
+    //     return ResponseEntity
+    //             .status(INTERNAL_SERVER_ERROR)
+    //             .body(
+    //                     ExceptionResponse.builder()
+    //                             .error(exp.getMessage())
+    //                             .build()
 
-                );
-    }
+    //             );
+    // }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ExceptionResponse> handleException(MethodArgumentNotValidException exp) {

@@ -32,16 +32,20 @@ spring:
             resourceserver:
                 jwt:
                     issuer-uri: ${JWT_ISSUER_URI:http://localhost:9090/realms/com.getmyuri.user-auth-realm}
+                    # jwk-set-uri is automatically derived by Spring Boot if not specified,
+                    # or can be kept if explicit configuration is preferred.
+                    # For Keycloak, it's typically issuer-uri + /protocol/openid-connect/certs
                     jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
                 
 
 application:
-    security:
-        jwt:
-            secret-key: ${JWT_SECRET_KEY}
-            expiration: ${JWT_EXPIRATION_TIME}
-            header: Authorization
-            prefix: Bearer
+    # Removed custom JWT configuration as Keycloak will be used
+    # security:
+    #     jwt:
+    #         secret-key: ${JWT_SECRET_KEY}
+    #         expiration: ${JWT_EXPIRATION_TIME}
+    #         header: Authorization
+    #         prefix: Bearer
     
     mailing:
         frontend:
