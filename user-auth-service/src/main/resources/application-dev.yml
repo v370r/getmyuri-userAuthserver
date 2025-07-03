@@ -27,6 +27,13 @@ spring:
                 connectiontimeout: 5000
                 timeout: 3000
                 writetimeout: 5000
+    security:
+        oauth2:
+            resourceserver:
+                jwt:
+                    issuer-uri: ${JWT_ISSUER_URI:http://localhost:9090/realms/com.getmyuri.user-auth-realm}
+                    jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
+                
 
 application:
     security:
