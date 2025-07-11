@@ -14,11 +14,15 @@ import com.getmyuri.user_auth_service.model.auth.AuthenticationRequest;
 import com.getmyuri.user_auth_service.model.auth.AuthenticationResponse;
 import com.getmyuri.user_auth_service.model.auth.RegistrationRequest;
 import com.getmyuri.user_auth_service.service.auth.AuthenticationService;
+import com.getmyuri.user_auth_service.service.JwtService; // Added import for JwtService
 
+import io.jsonwebtoken.JwtException; // Added import for JwtException
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.HttpHeaders; // Added import for HttpHeaders
 
 @RestController
 @RequestMapping("auth")
@@ -27,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 public class AuthenticationController {
 
     private final AuthenticationService authService;
+    private final JwtService jwtService; // Injected JwtService
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.ACCEPTED)
@@ -45,4 +50,21 @@ public class AuthenticationController {
         authService.activateAccount(token, email);
     }
 
+    /** 200 → OK, 401 → bad token */
+    @GetMapping("/validate")
+    public ResponseEntity<Void> validate(@RequestHeader(HttpHeaders.AUTHORIZATION) String auth) {
+        try {
+            // Extract token from "Bearer <token>"
+            if (auth == null || !auth.startsWith("Bearer ")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+            String token = auth.substring(7);
+            jwtService.extractUsername(token); // This will throw JwtException if token is invalid or expired
+            return ResponseEntity.ok().build();
+        } catch (JwtException e) {
+            // Log the exception (optional, but recommended)
+            // logger.warn("JWT validation failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
 }
