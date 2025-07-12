@@ -18,9 +18,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
@@ -29,7 +31,7 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
-
+        log.info("Processing request: {}", request.getRequestURI());
         if (request.getServletPath().contains("api/v1/auth")) {
             filterChain.doFilter(request, response);
             return;
@@ -56,7 +58,7 @@ public class JwtFilter extends OncePerRequestFilter {
             }
         }
         filterChain.doFilter(request, response);
-
+        log.info("Finished processing request: {}", request.getRequestURI());
     }
 
 }

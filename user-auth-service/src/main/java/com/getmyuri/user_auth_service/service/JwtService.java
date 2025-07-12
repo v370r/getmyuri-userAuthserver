@@ -18,9 +18,11 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor // Added
+@Slf4j
 public class JwtService {
 
     @Value("${application.security.jwt.expiration}")
@@ -55,7 +57,7 @@ public class JwtService {
 
     public String generateToken(Map<String, Object> claims,
             UserDetails userDetails) {
-
+        log.info("Generating token for user: {}", userDetails.getUsername());
         return buildToken(claims, userDetails, jwtExpiration);
     }
 
@@ -66,15 +68,18 @@ public class JwtService {
     }
 
     private String buildToken(Map<String, Object> extraClaims, UserDetails userDetails, long jwtExpiration) {
+        log.info("Building token for user: {}", userDetails.getUsername());
         var authorities = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority).toList();
-        return Jwts.builder().setClaims(extraClaims)
+        String token = Jwts.builder().setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .claim("authorities", authorities)
                 .signWith(getSignInKey())
                 .compact();
+        log.info("Token built successfully for user: {}", userDetails.getUsername());
+        return token;
     }
 
     private Key getSignInKey() {
@@ -96,6 +101,7 @@ public class JwtService {
     }
 
     public void validate(String authHeader) {
+        log.info("Validating token");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             throw new io.jsonwebtoken.MalformedJwtException("Authorization header is missing or does not start with Bearer string");
         }
@@ -133,7 +139,7 @@ public class JwtService {
             // The token's own expiration is handled by extractAllClaims.
             // The username from the token has been used to load UserDetails, so they match by definition at this point.
             // Therefore, the core parts of `isTokenValid(token, userDetails)` are covered.
-
+            log.info("Token validated successfully for user: {}", username);
         } catch (org.springframework.security.core.userdetails.UsernameNotFoundException e) {
             // If user not found in DB, token is effectively invalid for this system.
             throw new io.jsonwebtoken.UnsupportedJwtException("User not found based on token subject: " + e.getMessage(), e);
@@ -144,8 +150,8 @@ public class JwtService {
 
     @PostConstruct
     public void validateProperties() { // TODO:// Implement logger
-        System.out.println("JWT secret loaded: " + (secretKey != null));
-        System.out.println("JWT expiration loaded: " + jwtExpiration);
+        log.info("JWT secret loaded: " + (secretKey != null));
+        log.info("JWT expiration loaded: " + jwtExpiration);
     }
 
 }

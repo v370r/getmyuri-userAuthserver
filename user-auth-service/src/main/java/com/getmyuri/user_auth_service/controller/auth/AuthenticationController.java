@@ -23,6 +23,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.http.HttpHeaders; // Added import for HttpHeaders
 
@@ -30,6 +31,7 @@ import org.springframework.http.HttpHeaders; // Added import for HttpHeaders
 @RequestMapping("auth")
 @RequiredArgsConstructor
 @Tag(name = "Authentication")
+@Slf4j
 public class AuthenticationController {
 
     private final AuthenticationService authService;
@@ -39,24 +41,33 @@ public class AuthenticationController {
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public ResponseEntity<?> postMethodName(@RequestBody @Valid RegistrationRequest request) throws MessagingException {
+        log.info("User registration started for email: {}", request.getEmail());
         authService.register(request);
+        log.info("User registration successful for email: {}", request.getEmail());
         return ResponseEntity.accepted().build();
     }
 
     @PostMapping("/authenticate")
     public ResponseEntity<AuthenticationResponse> postMethodName(@RequestBody @Valid AuthenticationRequest request) {
-        return ResponseEntity.ok(authService.authenticate(request));
+        log.info("User authentication started for email: {}", request.getEmail());
+        AuthenticationResponse response = authService.authenticate(request);
+        log.info("User authentication successful for email: {}", request.getEmail());
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/activate-account")
     public void confirm(@RequestParam String token, @RequestParam String email) throws MessagingException {
+        log.info("Account activation started for email: {}", email);
         authService.activateAccount(token, email);
+        log.info("Account activation successful for email: {}", email);
     }
 
     /** 200 → OK, 401 → bad token */
     @GetMapping("/validate")
-    public ResponseEntity<Void> validate(@RequestHeader(HttpHeaders.AUTHORIZATION) String auth) {
+    public ResponseEntity<Void> validate(@org.springframework.web.bind.annotation.RequestHeader(HttpHeaders.AUTHORIZATION) String auth) {
+        log.info("Token validation started");
         jwtService.validate(auth); // Call validate with the raw Authorization header, exceptions handled globally
+        log.info("Token validation successful");
         return ResponseEntity.ok().build();
     }
     // Removed /refresh endpoint
