@@ -34,9 +34,11 @@ import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthenticationService {
 
     private final RoleRepository roleRepository;
@@ -52,6 +54,7 @@ public class AuthenticationService {
     private String activationUrl;
 
     public void register(RegistrationRequest request) throws MessagingException {
+        log.info("Registering user: {}", request.getEmail());
         var userRole = roleRepository.findByName(Constants.USER)
                 .orElseThrow(() -> new IllegalStateException("ROLE USER was not initialized"));
         var user = User.builder()
@@ -65,18 +68,21 @@ public class AuthenticationService {
                 .build();
         userRepository.save(user);
         sendValidationEmail(user);
+        log.info("User registered successfully: {}", request.getEmail());
     }
 
     private void sendValidationEmail(User user) throws MessagingException {
+        log.info("Sending validation email to: {}", user.getEmail());
         var newToken = generateAndSaveActivationToken(user);
         emailService.sendEmail(user.getEmail(),
                 user.fullName(),
                 EmailTemplateName.ACTIVATE_ACCOUNT,
                 activationUrl, newToken, ACTIVATION_ACTIVATION);
-
+        log.info("Validation email sent to: {}", user.getEmail());
     }
 
     private String generateAndSaveActivationToken(User user) {
+        log.info("Generating and saving activation token for user: {}", user.getEmail());
         String generatedToken = generateActivationCode(6);
         var token = Token.builder()
                 .token(generatedToken)
@@ -85,10 +91,12 @@ public class AuthenticationService {
                 .user(user)
                 .build();
         tokenRepository.save(token);
+        log.info("Activation token generated and saved for user: {}", user.getEmail());
         return generatedToken;
     }
 
     private String generateActivationCode(int length) {
+        log.info("Generating activation code of length: {}", length);
         String characters = DIGITS;
         StringBuilder numberGen = new StringBuilder();
         SecureRandom random = new SecureRandom();
@@ -96,10 +104,13 @@ public class AuthenticationService {
             int randomIndex = random.nextInt(characters.length());
             numberGen.append(characters.charAt(randomIndex));
         }
-        return numberGen.toString();
+        String activationCode = numberGen.toString();
+        log.info("Activation code generated: {}", activationCode);
+        return activationCode;
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
+        log.info("Authenticating user: {}", request.getEmail());
         var auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                 request.getEmail(), request.getPassword()));
         var claims = new HashMap<String, Object>();
@@ -107,6 +118,7 @@ public class AuthenticationService {
         claims.put("fullName", user.fullName());
         var jwtAccessToken = jwtService.generateToken(claims, user);
         // var refreshToken = refreshTokenService.createRefreshToken(user.getEmail()); // Removed
+        log.info("User authenticated successfully: {}", request.getEmail());
         return AuthenticationResponse.builder()
                 .token(jwtAccessToken)
                 // .refreshToken(refreshToken.getToken()) // Removed
@@ -115,6 +127,7 @@ public class AuthenticationService {
 
     @Transactional
     public void activateAccount(String token, String email) throws MessagingException {
+        log.info("Activating account for email: {}", email);
         Token savedToken = tokenRepository.findByToken(token)
                 .orElseThrow(() -> new RuntimeException("Invalid token"));
 
@@ -134,7 +147,7 @@ public class AuthenticationService {
         userRepository.save(user);
         savedToken.setValidatedAt(LocalDateTime.now());
         tokenRepository.save(savedToken);
-
+        log.info("Account activated successfully for email: {}", email);
     }
 
 }
