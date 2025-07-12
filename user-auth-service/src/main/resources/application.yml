@@ -20,3 +20,11 @@ springdoc:
 server:
     servlet:
         context-path: /api/v1
+
+application:
+  security:
+    jwt:
+      # secret-key, expiration are typically loaded from config server or environment variables in a real setup
+      # For local development, they can be defined here if not overridden.
+      # secret-key: your-very-secure-secret-key-for-jwt # Example: replace or load from env
+      # expiration: 86400000 # 24 hours in milliseconds for access token, example

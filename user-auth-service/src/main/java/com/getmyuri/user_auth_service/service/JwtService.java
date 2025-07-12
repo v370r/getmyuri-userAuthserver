@@ -9,22 +9,27 @@ import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService; // Added
 import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Claims;
+import lombok.RequiredArgsConstructor; // Added
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 
 @Service
+@RequiredArgsConstructor // Added
 public class JwtService {
 
     @Value("${application.security.jwt.expiration}")
-    private long jwtExpiration;
+    private long jwtExpiration; // For access tokens
 
     @Value("${application.security.jwt.secret-key}")
     private String secretKey;
+
+    private final UserDetailsService userDetailsService; // Added
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -88,6 +93,53 @@ public class JwtService {
 
     private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
+    }
+
+    public void validate(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new io.jsonwebtoken.MalformedJwtException("Authorization header is missing or does not start with Bearer string");
+        }
+        String token = authHeader.substring(7);
+        try {
+            // 1. Validate token structure, signature, and standard expiration.
+            //    extractAllClaims will throw JwtException (e.g., ExpiredJwtException, MalformedJwtException, SignatureException) if invalid.
+            Claims claims = extractAllClaims(token);
+            String username = claims.getSubject();
+
+            // 2. Check if username (subject) exists in the token.
+            if (username == null) {
+                throw new io.jsonwebtoken.JwtException("JWT token subject (username) is missing.");
+            }
+
+            // 3. Load user from database.
+            //    This throws UsernameNotFoundException if user doesn't exist.
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+            // 4. Check user account status from UserDetails.
+            if (!userDetails.isEnabled()) {
+                throw new io.jsonwebtoken.DisabledException("User account is disabled.");
+            }
+            if (!userDetails.isAccountNonLocked()) {
+                throw new io.jsonwebtoken.LockedException("User account is locked.");
+            }
+            // Not typically checked for API access with tokens, but can be included if required:
+            // if (!userDetails.isAccountNonExpired()) {
+            //     throw new io.jsonwebtoken.AccountExpiredException("User account has expired."); // Note: AccountExpiredException is a Spring Security exception
+            // }
+            // if (!userDetails.isCredentialsNonExpired()) {
+            //     throw new io.jsonwebtoken.CredentialsExpiredException("User credentials have expired."); // Note: CredentialsExpiredException is a Spring Security exception
+            // }
+
+            // The token's own expiration is handled by extractAllClaims.
+            // The username from the token has been used to load UserDetails, so they match by definition at this point.
+            // Therefore, the core parts of `isTokenValid(token, userDetails)` are covered.
+
+        } catch (org.springframework.security.core.userdetails.UsernameNotFoundException e) {
+            // If user not found in DB, token is effectively invalid for this system.
+            throw new io.jsonwebtoken.UnsupportedJwtException("User not found based on token subject: " + e.getMessage(), e);
+        }
+        // Other JwtExceptions (ExpiredJwtException, MalformedJwtException, SignatureException, etc.) from extractAllClaims
+        // will propagate up and be handled by the global exception handler.
     }
 
     @PostConstruct

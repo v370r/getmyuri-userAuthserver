@@ -12,9 +12,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.getmyuri.user_auth_service.model.auth.AuthenticationRequest;
 import com.getmyuri.user_auth_service.model.auth.AuthenticationResponse;
+// import com.getmyuri.user_auth_service.model.auth.RefreshTokenRequest; // Removed
 import com.getmyuri.user_auth_service.model.auth.RegistrationRequest;
 import com.getmyuri.user_auth_service.service.auth.AuthenticationService;
 import com.getmyuri.user_auth_service.service.JwtService; // Added import for JwtService
+// import com.getmyuri.user_auth_service.service.RefreshTokenService; // Removed
 
 import io.jsonwebtoken.JwtException; // Added import for JwtException
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,7 +33,8 @@ import org.springframework.http.HttpHeaders; // Added import for HttpHeaders
 public class AuthenticationController {
 
     private final AuthenticationService authService;
-    private final JwtService jwtService; // Injected JwtService
+    private final JwtService jwtService;
+    // private final RefreshTokenService refreshTokenService; // Removed RefreshTokenService
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.ACCEPTED)
@@ -53,18 +56,8 @@ public class AuthenticationController {
     /** 200 → OK, 401 → bad token */
     @GetMapping("/validate")
     public ResponseEntity<Void> validate(@RequestHeader(HttpHeaders.AUTHORIZATION) String auth) {
-        try {
-            // Extract token from "Bearer <token>"
-            if (auth == null || !auth.startsWith("Bearer ")) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
-            String token = auth.substring(7);
-            jwtService.extractUsername(token); // This will throw JwtException if token is invalid or expired
-            return ResponseEntity.ok().build();
-        } catch (JwtException e) {
-            // Log the exception (optional, but recommended)
-            // logger.warn("JWT validation failed: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+        jwtService.validate(auth); // Call validate with the raw Authorization header, exceptions handled globally
+        return ResponseEntity.ok().build();
     }
+    // Removed /refresh endpoint
 }

@@ -27,6 +27,7 @@ import com.getmyuri.user_auth_service.repository.RoleRepository;
 import com.getmyuri.user_auth_service.repository.TokenRepository;
 import com.getmyuri.user_auth_service.repository.UserRepository;
 import com.getmyuri.user_auth_service.service.JwtService;
+// import com.getmyuri.user_auth_service.service.RefreshTokenService; // Removed import
 import com.getmyuri.user_auth_service.service.email.EmailService;
 
 import jakarta.mail.MessagingException;
@@ -45,6 +46,7 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
     private final JwtService jwtService;
+    // private final RefreshTokenService refreshTokenService; // Removed RefreshTokenService
 
     @Value("${application.mailing.frontend.activation-url}")
     private String activationUrl;
@@ -103,10 +105,12 @@ public class AuthenticationService {
         var claims = new HashMap<String, Object>();
         var user = ((User) auth.getPrincipal());
         claims.put("fullName", user.fullName());
-        var jwtToken = jwtService.generateToken(claims, user);
-        return AuthenticationResponse.builder().token(jwtToken)
+        var jwtAccessToken = jwtService.generateToken(claims, user);
+        // var refreshToken = refreshTokenService.createRefreshToken(user.getEmail()); // Removed
+        return AuthenticationResponse.builder()
+                .token(jwtAccessToken)
+                // .refreshToken(refreshToken.getToken()) // Removed
                 .build();
-
     }
 
     @Transactional
