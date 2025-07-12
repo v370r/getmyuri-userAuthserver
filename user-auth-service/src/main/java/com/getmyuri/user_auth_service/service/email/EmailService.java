@@ -20,9 +20,11 @@ import com.getmyuri.user_auth_service.model.email.EmailTemplateName;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class EmailService {
 
     private final JavaMailSender mailSender;
@@ -32,6 +34,7 @@ public class EmailService {
     public void sendEmail(String to, String username,
             EmailTemplateName emailTemplate, String confirmation,
             String activationCode, String subject) throws MessagingException {
+        log.info("Sending email to: {}", to);
         String templateName;
         if (emailTemplate == null) {
             templateName = DEFAULT_TEMPLATE_NAME;
@@ -58,7 +61,7 @@ public class EmailService {
 
         helper.setText(template, Boolean.TRUE);
         mailSender.send(mimeMessage);
-
+        log.info("Email sent to: {}", to);
     }
 
 }
