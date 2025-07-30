@@ -1,5 +1,6 @@
 package com.getmyuri.user_auth_service.service.impl;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -14,10 +15,10 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@ConditionalOnProperty(name = "auth.mode", havingValue = "local")
 public class UserDetailsServiceImpl implements UserDetailsService {
-    
-    private final UserRepository userRepository;
 
+    private final UserRepository userRepository;
 
     @Override
     @Transactional

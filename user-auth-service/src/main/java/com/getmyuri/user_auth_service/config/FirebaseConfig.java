@@ -4,11 +4,15 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
+
+import jakarta.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -16,29 +20,25 @@ import java.nio.charset.StandardCharsets;
 @Configuration
 public class FirebaseConfig {
 
-    @Value("${firebase.project.id}")
-    private String projectId;
+    // @Value("${firebase.project.id}")
+    // private String projectId;
 
-    @Value("${firebase.private.key}")
-    private String privateKey;
+    // @Value("${firebase.private.key}")
+    // private String privateKey;
 
-    @Value("${firebase.client.email}")
-    private String clientEmail;
+    // @Value("${firebase.client.email}")
+    // private String clientEmail;
 
-    @Bean
-    public FirebaseApp firebaseApp() throws IOException {
-        String privateKeyJson = privateKey.replace("\\n", "\n");
-        String credentialsJson = String.format(
-                "{\"type\": \"service_account\", \"project_id\": \"%s\", \"private_key\": \"%s\", \"client_email\": \"%s\"}",
-                projectId, privateKeyJson, clientEmail
-        );
+    @PostConstruct
+    public void init() throws IOException {
+        FileInputStream serviceAccount = new FileInputStream("src/main/resources/firebase-service-account.json");
 
-        InputStream serviceAccount = new ByteArrayInputStream(credentialsJson.getBytes(StandardCharsets.UTF_8));
-
-        FirebaseOptions options = new FirebaseOptions.Builder()
+        FirebaseOptions options = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                 .build();
 
-        return FirebaseApp.initializeApp(options);
+        if (FirebaseApp.getApps().isEmpty()) {
+            FirebaseApp.initializeApp(options);
+        }
     }
 }

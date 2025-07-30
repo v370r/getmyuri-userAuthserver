@@ -28,10 +28,10 @@ application:
       # For local development, they can be defined here if not overridden.
       # secret-key: your-very-secure-secret-key-for-jwt # Example: replace or load from env
       # expiration: 86400000 # 24 hours in milliseconds for access token, example
-firebase:
-  project:
-    id: "${FIREBASE_PROJECT_ID}"
-  private:
-    key: "${FIREBASE_PRIVATE_KEY}"
-  client:
-    email: "${FIREBASE_CLIENT_EMAIL}"
+# firebase:
+#   project:
+#     id: "${FIREBASE_PROJECT_ID}"
+#   private:
+#     key: "${FIREBASE_PRIVATE_KEY}"
+#   client:
+#     email: "${FIREBASE_CLIENT_EMAIL}"

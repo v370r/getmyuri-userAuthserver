@@ -1,6 +1,7 @@
 package com.getmyuri.user_auth_service.service.security;
 
 import java.io.IOException;
+import java.util.Collections;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.getmyuri.user_auth_service.service.JwtService;
+import com.google.firebase.auth.FirebaseToken;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -25,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class JwtFilter extends OncePerRequestFilter {
 
-    private final FirebaseIdTokenProcessor firebaseIdTokenProcessor;
+    FirebaseIdTokenProcessor firebaseIdTokenProcessor;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -36,13 +38,17 @@ public class JwtFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
+
         String idToken = authHeader.substring(7);
         try {
-            UserDetails userDetails = firebaseIdTokenProcessor.process(idToken);
+            FirebaseToken decodedToken = firebaseIdTokenProcessor.process(idToken);
+            String email = decodedToken.getEmail();
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails.getAuthorities());
+                    email, null, Collections.emptyList());
+
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authentication);
+
         } catch (Exception e) {
             log.error("Error processing Firebase ID token", e);
             SecurityContextHolder.clearContext();
