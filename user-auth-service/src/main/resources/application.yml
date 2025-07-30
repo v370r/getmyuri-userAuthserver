@@ -3,6 +3,8 @@ spring:
         active: dev
     application:
         name: user-auth-service
+auth:
+    mode: firebase
     servlet:
         multipart:
             max-file-size:
