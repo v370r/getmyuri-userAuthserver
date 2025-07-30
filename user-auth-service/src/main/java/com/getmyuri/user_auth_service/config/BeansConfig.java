@@ -12,7 +12,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
-@ConditionalOnProperty(name = "auth.mode", havingValue = "form", matchIfMissing = false)
 public class BeansConfig {
 
     private final UserDetailsService userDetailsService;
