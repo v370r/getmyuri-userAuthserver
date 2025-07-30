@@ -9,7 +9,7 @@ import com.getmyuri.user_auth_service.model.user.Token;
 import com.getmyuri.user_auth_service.model.user.User;
 import com.getmyuri.user_auth_service.repository.FirebaseRoleRepository;
 import com.getmyuri.user_auth_service.repository.FirebaseUserRepository;
-import com.getmyuri.user_auth_service.repository.TokenRepository;
+import com.getmyuri.user_auth_service.repository.FirebaseTokenRepository;
 import com.getmyuri.user_auth_service.service.JwtService;
 import com.getmyuri.user_auth_service.service.email.EmailService;
 import com.google.firebase.auth.FirebaseAuth;
@@ -44,7 +44,7 @@ public class FirebaseAuthenticationService {
     private final FirebaseRoleRepository roleRepository;
     private final FirebaseUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final TokenRepository tokenRepository;
+    private final FirebaseTokenRepository tokenRepository;
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
     private final JwtService jwtService;
@@ -100,7 +100,11 @@ public class FirebaseAuthenticationService {
                 .expiresAt(LocalDateTime.now().plusMinutes(15))
                 .user(user)
                 .build();
-        tokenRepository.save(token);
+        try {
+            tokenRepository.save(token);
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+        }
         log.info("Activation token generated and saved for user: {}",
                 user.getEmail());
         return generatedToken;
