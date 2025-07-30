@@ -59,10 +59,4 @@ public class AuthenticationController {
         log.info("Account activation successful for email: {}", email);
     }
 
-    /** 200 → OK, 401 → bad token */
-    @GetMapping("/validate")
-    public ResponseEntity<Void> validate(@RequestHeader(HttpHeaders.AUTHORIZATION) String auth) {
-        jwtService.validate(auth);
-        return ResponseEntity.ok().build();
-    }
 }

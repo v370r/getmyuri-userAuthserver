@@ -9,7 +9,6 @@ import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Claims;
@@ -30,8 +29,6 @@ public class JwtService {
     private long jwtExpiration;
     @Value("${application.security.jwt.secret-key}")
     private String secretKey;
-
-    private final UserDetailsService userDetailsService;
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -85,69 +82,6 @@ public class JwtService {
     private Key getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
-    }
-
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
-    }
-
-    private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
-    }
-
-    private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
-    }
-
-    public void validate(String authHeader) {
-        log.info("Validating token");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new io.jsonwebtoken.MalformedJwtException(
-                    "Authorization header is missing or does not start with Bearer string");
-        }
-        String token = authHeader.substring(7);
-        try {
-            Claims claims = extractAllClaims(token);
-            String username = claims.getSubject();
-
-            if (username == null) {
-                throw new io.jsonwebtoken.JwtException("JWT token subject (username) is missing.");
-            }
-
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
-            if (!userDetails.isEnabled()) {
-                throw new JwtException("User account is disabled.");
-            }
-            if (!userDetails.isAccountNonLocked()) {
-                throw new JwtException("User account is locked.");
-            }
-            // Not typically checked for API access with tokens, but can be included if
-            // required:
-            // if (!userDetails.isAccountNonExpired()) {
-            // throw new io.jsonwebtoken.AccountExpiredException("User account has
-            // expired."); // Note: AccountExpiredException is a Spring Security exception
-            // }
-            // if (!userDetails.isCredentialsNonExpired()) {
-            // throw new io.jsonwebtoken.CredentialsExpiredException("User credentials have
-            // expired."); // Note: CredentialsExpiredException is a Spring Security
-            // exception
-            // }
-
-            // The token's own expiration is handled by extractAllClaims.
-            // The username from the token has been used to load UserDetails, so they match
-            // by definition at this point.
-            // Therefore, the core parts of `isTokenValid(token, userDetails)` are covered.
-
-        } catch (org.springframework.security.core.userdetails.UsernameNotFoundException e) {
-            // If user not found in DB, token is effectively invalid for this system.
-            throw new io.jsonwebtoken.UnsupportedJwtException(
-                    "User not found based on token subject: " + e.getMessage(), e);
-        }
-        // Other JwtExceptions (ExpiredJwtException, MalformedJwtException,
-        // SignatureException, etc.) from extractAllClaims
-        // will propagate up and be handled by the global exception handler.
     }
 
     @PostConstruct
